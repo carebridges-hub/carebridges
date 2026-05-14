@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { 
-  TrendingUp, 
   Users, 
   Clock, 
   ShieldAlert,
@@ -42,6 +41,9 @@ const Monitoring = () => {
     'Ranap': '#22C55E'
   };
 
+  // Dynamic scaling based on max count
+  const maxCount = Math.max(...(stats?.unitTrend?.map((u: any) => u.count) || [1]), 1);
+
   return (
     <Layout>
       <div className="space-y-8 animate-in fade-in duration-700">
@@ -50,37 +52,33 @@ const Monitoring = () => {
             <h1 className="text-2xl font-bold text-slate-900">Executive Monitoring</h1>
             <p className="text-slate-500">Analisis tren dan performa respon unit.</p>
           </div>
-          <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full">
-            <TrendingUp className="h-4 w-4" />
-            <span>+12% vs Bulan Lalu</span>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                <BarChart className="h-5 w-5 text-primary-600" />
-                Tren Keluhan per Unit
-              </h3>
-            </div>
+            <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-8">
+              <BarChart className="h-5 w-5 text-primary-600" />
+              Tren Keluhan per Unit
+            </h3>
             <div className="h-64 flex items-end justify-between gap-6 px-4 overflow-x-auto pb-8">
               {stats?.unitTrend?.map((u: any) => {
                 const hexColor = unitColors[u.unit] || '#94A3B8';
+                const heightPercent = Math.max((u.count / maxCount) * 100, 10);
+                
                 return (
                   <div key={u.unit} className="flex-1 min-w-[70px] flex flex-col items-center gap-4 group">
                     <div className="flex flex-col items-center gap-2 w-full h-full justify-end">
-                      <span className="text-xs font-bold text-slate-500">{u.count}</span>
+                      <span className="text-xs font-bold text-slate-600">{u.count}</span>
                       <div 
-                        className="w-full rounded-t-2xl transition-all duration-1000 ease-out relative shadow-xl hover:brightness-110"
+                        className="w-full rounded-t-2xl transition-all duration-1000 relative shadow-xl"
                         style={{ 
-                          height: `${Math.max((u.count / (stats.total || 1)) * 100, 10)}%`,
+                          height: `${heightPercent}%`,
                           backgroundColor: hexColor,
                           opacity: 1,
                           border: `1px solid ${hexColor}`
                         }}
                       >
-                        <div className="absolute inset-0 bg-black/10 rounded-t-2xl" />
+                        <div className="absolute inset-0 bg-white/10 rounded-t-2xl" />
                       </div>
                     </div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center leading-tight h-10">
@@ -114,15 +112,6 @@ const Monitoring = () => {
                 </div>
                 <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full bg-blue-500 w-[92%]" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Kepuasan Pasien</span>
-                  <span className="font-bold text-slate-900">4.8/5.0</span>
-                </div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-500 w-[96%]" />
                 </div>
               </div>
             </div>

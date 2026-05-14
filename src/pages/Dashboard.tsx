@@ -5,7 +5,6 @@ import {
   CheckCircle2, 
   Clock, 
   MoreHorizontal,
-  Play,
   Trash2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -57,19 +56,21 @@ const Dashboard = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus keluhan ini? Data akan hilang permanen dari Neon Database.')) return;
+    if (!window.confirm('Hapus keluhan ini secara permanen dari database?')) return;
     try {
       const res = await fetch(`/.netlify/functions/complaints?id=${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
-        await fetchData(); // Refresh table AND stats
+        await fetchData();
       } else {
-        alert('Gagal menghapus data.');
+        const errorData = await res.text();
+        alert(`Gagal menghapus: ${errorData}`);
       }
     } catch (err) {
       console.error(err);
+      alert('Terjadi kesalahan jaringan.');
     }
   };
 
@@ -104,13 +105,16 @@ const Dashboard = () => {
     'Ranap': '#22C55E'
   };
 
+  // Calculate max count for dynamic scaling
+  const maxCount = Math.max(...(stats?.unitTrend?.map((u: any) => u.count) || [1]), 1);
+
   return (
     <Layout>
       <div className="space-y-8 animate-in fade-in duration-700">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Selamat Datang, {user?.name}</h1>
-            <p className="text-slate-500">Berikut adalah ringkasan keluhan fasilitas rumah sakit saat ini.</p>
+            <p className="text-slate-500">Dashboard Manajemen Fasilitas CareBridges.</p>
           </div>
         </div>
 
@@ -132,12 +136,12 @@ const Dashboard = () => {
               <div className="p-3 rounded-xl bg-amber-50 text-amber-600">
                 <Clock className="h-6 w-6" />
               </div>
-              <span className="text-xs font-medium text-slate-400">Dalam Proses</span>
+              <span className="text-xs font-medium text-slate-400">Alert Keluhan</span>
             </div>
             <p className="text-3xl font-bold text-slate-900">
-              {stats?.summary?.find((s: any) => s.status === 'pending' || s.status === 'verified' || s.status === 'in_progress')?.count || 0}
+              {stats?.summary?.find((s: any) => s.status === 'pending')?.count || 0}
             </p>
-            <p className="text-sm text-slate-500 font-medium mt-1">Sedang Ditangani</p>
+            <p className="text-sm text-slate-500 font-medium mt-1">Menunggu Verifikasi</p>
           </div>
 
           <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm border-l-4 border-l-emerald-600">
@@ -156,26 +160,27 @@ const Dashboard = () => {
 
         {/* Interactive Trend Chart */}
         <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="font-bold text-slate-900 text-lg">Grafik Tren Keluhan per Unit</h3>
-          </div>
+          <h3 className="font-bold text-slate-900 text-lg mb-8">Grafik Tren Keluhan per Unit</h3>
           <div className="h-64 flex items-end justify-between gap-6 px-4 overflow-x-auto pb-4">
             {stats?.unitTrend?.map((u: any) => {
               const hexColor = unitColors[u.unit] || '#94A3B8';
+              // Calculate dynamic height relative to maxCount
+              const heightPercent = Math.max((u.count / maxCount) * 100, 10);
+              
               return (
                 <div key={u.unit} className="flex-1 min-w-[70px] flex flex-col items-center gap-4 group">
                   <div className="flex flex-col items-center gap-2 w-full h-full justify-end">
-                    <span className="text-[10px] font-bold text-slate-500">{u.count}</span>
+                    <span className="text-[10px] font-bold text-slate-600">{u.count}</span>
                     <div 
-                      className="w-full rounded-t-lg transition-all duration-700 relative shadow-lg hover:brightness-110"
+                      className="w-full rounded-t-lg transition-all duration-700 relative shadow-lg"
                       style={{ 
-                        height: `${Math.max((u.count / (stats.total || 1)) * 100, 15)}%`,
+                        height: `${heightPercent}%`,
                         backgroundColor: hexColor,
                         opacity: 1,
                         border: `1px solid ${hexColor}`
                       }}
                     >
-                      <div className="absolute inset-0 bg-black/10 rounded-t-lg" />
+                      <div className="absolute inset-0 bg-white/10 rounded-t-lg" />
                     </div>
                   </div>
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter text-center h-10 leading-tight">
@@ -190,7 +195,7 @@ const Dashboard = () => {
         {/* Recent Complaints Table */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="font-bold text-slate-900">Keluhan Terbaru</h3>
+            <h3 className="font-bold text-slate-900">Daftar Keluhan</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -225,39 +230,28 @@ const Dashboard = () => {
                         {user?.role === 'admin' && c.status === 'pending' && (
                           <button 
                             onClick={() => updateStatus(c.id, 'verified')}
-                            className="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 flex items-center gap-1"
+                            className="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-all flex items-center gap-1"
                           >
                             <CheckCircle2 className="h-3 w-3" /> Verifikasi
-                          </button>
-                        )}
-                        {user?.role === 'technician' && c.status === 'verified' && (
-                          <button 
-                            onClick={() => updateStatus(c.id, 'in_progress')}
-                            className="text-[10px] font-bold bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 flex items-center gap-1"
-                          >
-                            <Play className="h-3 w-3" /> Kerjakan
                           </button>
                         )}
                         {(user?.role === 'technician' || user?.role === 'admin') && (c.status === 'verified' || c.status === 'in_progress') && (
                           <button 
                             onClick={() => updateStatus(c.id, 'resolved')}
-                            className="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 flex items-center gap-1"
+                            className="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-all flex items-center gap-1"
                           >
                             <CheckCircle2 className="h-3 w-3" /> Selesai
                           </button>
                         )}
-                        
-                        {/* FITUR HAPUS KHUSUS ADMIN */}
                         {user?.role === 'admin' && (
                           <button 
                             onClick={() => handleDelete(c.id)}
                             className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                            title="Hapus Keluhan"
+                            title="Hapus"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         )}
-                        
                         <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg">
                           <MoreHorizontal className="h-5 w-5" />
                         </button>
@@ -266,7 +260,7 @@ const Dashboard = () => {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-slate-400 italic text-sm">
+                    <td colSpan={4} className="px-6 py-12 text-center text-slate-400 italic">
                       Belum ada data keluhan.
                     </td>
                   </tr>

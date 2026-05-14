@@ -23,7 +23,6 @@ export const handler = async (event: any) => {
 
   // GET: List or Track complaints
   if (event.httpMethod === 'GET') {
-    // If tracking by WhatsApp (Public)
     if (trackWhatsapp) {
       try {
         const result = await db.select().from(complaints)
@@ -39,7 +38,6 @@ export const handler = async (event: any) => {
       }
     }
 
-    // Otherwise requires Auth
     if (!user) return { statusCode: 401, body: 'Unauthorized' };
     
     try {
@@ -54,7 +52,7 @@ export const handler = async (event: any) => {
     }
   }
 
-  // POST: Create complaint (Public)
+  // POST: Create complaint
   if (event.httpMethod === 'POST') {
     try {
       const data = JSON.parse(event.body);
@@ -66,7 +64,6 @@ export const handler = async (event: any) => {
         status: 'pending',
       }).returning();
 
-      // Log audit
       await db.insert(auditLogs).values({
         complaintId: newComplaint.id,
         action: 'Patient Submitted',
@@ -83,15 +80,13 @@ export const handler = async (event: any) => {
     }
   }
 
-  // PATCH: Update complaint (Requires Auth)
+  // PATCH: Update complaint
   if (event.httpMethod === 'PATCH') {
     if (!user) return { statusCode: 401, body: 'Unauthorized' };
     
     try {
       const { id, status, targetUnit, adminNotes } = JSON.parse(event.body);
-      
-      const updateData: any = { status, updatedAt: new Date() };
-      await db.update(complaints).set(updateData).where(eq(complaints.id, id));
+      await db.update(complaints).set({ status, updatedAt: new Date() }).where(eq(complaints.id, id));
 
       if (targetUnit) {
         await db.insert(dispositions).values({
@@ -102,7 +97,6 @@ export const handler = async (event: any) => {
         });
       }
 
-      // Log audit
       await db.insert(auditLogs).values({
         complaintId: id,
         action: `Status updated to ${status}`,
@@ -121,16 +115,27 @@ export const handler = async (event: any) => {
   }
 
   // DELETE: Remove complaint (Admin only)
+  // FIX: Delete related records first to satisfy foreign key constraints
   if (event.httpMethod === 'DELETE') {
     if (!user || user.role !== 'admin') return { statusCode: 401, body: 'Unauthorized' };
     const { id } = event.queryStringParameters || {};
     if (!id) return { statusCode: 400, body: 'Missing ID' };
 
     try {
+      // 1. Delete Dispositions
+      await db.delete(dispositions).where(eq(dispositions.complaintId, id));
+      // 2. Delete Audit Logs
+      await db.delete(auditLogs).where(eq(auditLogs.complaintId, id));
+      // 3. Delete Complaint
       await db.delete(complaints).where(eq(complaints.id, id));
-      return { statusCode: 200, body: 'Deleted' };
+
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'Deleted successfully' }),
+      };
     } catch (error: any) {
-      return { statusCode: 500, body: error.message };
+      return { statusCode: 500, body: `Delete failed: ${error.message}` };
     }
   }
 
