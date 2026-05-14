@@ -1,0 +1,105 @@
+import { db } from '../../src/db';
+import { complaints, auditLogs, dispositions } from '../../src/db/schema';
+import { eq, desc } from 'drizzle-orm';
+import * as jose from 'jose';
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'carebridges_super_secret_key_2024');
+
+async function verifyToken(token: string) {
+  try {
+    const { payload } = await jose.jwtVerify(token, JWT_SECRET);
+    return payload;
+  } catch (err) {
+    return null;
+  }
+}
+
+export const handler = async (event: any) => {
+  const authHeader = event.headers.authorization;
+  const token = authHeader?.split(' ')[1];
+  const user = token ? await verifyToken(token) : null;
+
+  // GET: List complaints (Requires Auth)
+  if (event.httpMethod === 'GET') {
+    if (!user) return { statusCode: 401, body: 'Unauthorized' };
+    
+    try {
+      const allComplaints = await db.select().from(complaints).orderBy(desc(complaints.createdAt));
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(allComplaints),
+      };
+    } catch (error: any) {
+      return { statusCode: 500, body: error.message };
+    }
+  }
+
+  // POST: Create complaint (Public)
+  if (event.httpMethod === 'POST') {
+    try {
+      const data = JSON.parse(event.body);
+      const [newComplaint] = await db.insert(complaints).values({
+        patientName: data.patientName,
+        whatsapp: data.whatsapp,
+        unit: data.unit,
+        content: data.content,
+        status: 'pending',
+      }).returning();
+
+      // Log audit
+      await db.insert(auditLogs).values({
+        complaintId: newComplaint.id,
+        action: 'Patient Submitted',
+        notes: `Complaint submitted via E-Complaint form for unit ${data.unit}`,
+      });
+
+      return {
+        statusCode: 201,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newComplaint),
+      };
+    } catch (error: any) {
+      return { statusCode: 500, body: error.message };
+    }
+  }
+
+  // PATCH: Update complaint (Requires Auth)
+  if (event.httpMethod === 'PATCH') {
+    if (!user) return { statusCode: 401, body: 'Unauthorized' };
+    
+    try {
+      const { id, status, targetUnit, adminNotes } = JSON.parse(event.body);
+      
+      const updateData: any = { status, updatedAt: new Date() };
+      await db.update(complaints).set(updateData).where(eq(complaints.id, id));
+
+      if (targetUnit) {
+        await db.insert(dispositions).values({
+          complaintId: id,
+          targetUnit,
+          adminNotes,
+          adminId: user.id as string,
+        });
+      }
+
+      // Log audit
+      await db.insert(auditLogs).values({
+        complaintId: id,
+        action: `Status updated to ${status}`,
+        actorId: user.id as string,
+        notes: adminNotes || `Updated by ${user.name}`,
+      });
+
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'Updated successfully' }),
+      };
+    } catch (error: any) {
+      return { statusCode: 500, body: error.message };
+    }
+  }
+
+  return { statusCode: 405, body: 'Method Not Allowed' };
+};
