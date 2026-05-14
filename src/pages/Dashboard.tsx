@@ -126,19 +126,30 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="h-48 flex items-end justify-between gap-6 px-4">
-            {stats?.unitTrend?.map((u: any) => (
-              <div key={u.unit} className="flex-1 flex flex-col items-center gap-4 group">
-                <div 
-                  className="w-full bg-primary-600/20 hover:bg-primary-600 rounded-t-lg transition-all duration-500 ease-in-out relative cursor-pointer"
-                  style={{ height: `${Math.max((u.count / (stats.total || 1)) * 100, 10)}%` }}
-                >
-                  <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-xl whitespace-nowrap z-20">
-                    {u.count} Laporan
+            {stats?.unitTrend?.map((u: any) => {
+              const colors: Record<string, string> = {
+                'Farmasi': 'bg-blue-500 shadow-blue-200',
+                'Poli': 'bg-teal-500 shadow-teal-200',
+                'Kasir': 'bg-amber-500 shadow-amber-200',
+                'Ranap': 'bg-emerald-600 shadow-emerald-200'
+              };
+              const colorClass = colors[u.unit] || 'bg-primary-500 shadow-primary-200';
+              
+              return (
+                <div key={u.unit} className="flex-1 flex flex-col items-center gap-4 group">
+                  <div className="flex flex-col items-center gap-2 w-full">
+                    <span className="text-[10px] font-bold text-slate-400">{u.count}</span>
+                    <div 
+                      className={`w-full ${colorClass} rounded-t-xl transition-all duration-700 ease-in-out relative shadow-lg hover:scale-x-105`}
+                      style={{ height: `${Math.max((u.count / (stats.total || 1)) * 100, 8)}%` }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-t-xl" />
+                    </div>
                   </div>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{u.unit}</span>
                 </div>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-tighter">{u.unit}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
