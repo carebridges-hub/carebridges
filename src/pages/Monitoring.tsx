@@ -50,7 +50,7 @@ const Monitoring = () => {
                 <div key={u.unit} className="flex-1 flex flex-col items-center gap-4">
                   <div 
                     className="w-full bg-primary-500 rounded-t-lg transition-all duration-1000 ease-out hover:bg-primary-600 cursor-pointer relative group"
-                    style={{ height: `${(u.count / stats.total) * 100}%`, minHeight: '10%' }}
+                    style={{ height: `${(u.count / (stats.total || 1)) * 100}%`, minHeight: '10%' }}
                   >
                     <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-all">
                       {u.count} Keluhan
@@ -106,7 +106,9 @@ const Monitoring = () => {
             </div>
             <div>
               <p className="text-sm font-medium text-red-600">Alert Keluhan</p>
-              <p className="text-2xl font-bold text-red-700">3 Belum Respon</p>
+              <p className="text-2xl font-bold text-red-700">
+                {stats?.summary?.find((s: any) => s.status === 'pending')?.count || 0} Belum Respon
+              </p>
             </div>
           </div>
           <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 flex items-center gap-4">

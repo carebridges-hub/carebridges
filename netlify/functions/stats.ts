@@ -15,6 +15,8 @@ async function verifyToken(token: string) {
   }
 }
 
+const UNITS = ['Poli', 'Farmasi', 'Kasir', 'Ranap'];
+
 export const handler = async (event: any) => {
   const authHeader = event.headers.authorization;
   const token = authHeader?.split(' ')[1];
@@ -23,7 +25,8 @@ export const handler = async (event: any) => {
   if (!user) return { statusCode: 401, body: 'Unauthorized' };
 
   try {
-    const stats = await db.select({
+    // Status Summary
+    const statsRes = await db.select({
       status: complaints.status,
       count: sql<number>`cast(count(*) as integer)`,
     }).from(complaints).groupBy(complaints.status);
@@ -32,16 +35,22 @@ export const handler = async (event: any) => {
     const total = totalRes[0]?.count || 0;
     
     // Trend by unit
-    const unitTrend = await db.select({
+    const dbUnitTrend = await db.select({
       unit: complaints.unit,
       count: sql<number>`cast(count(*) as integer)`,
     }).from(complaints).groupBy(complaints.unit);
+
+    // Merge with all units to ensure 0s are shown
+    const unitTrend = UNITS.map(unit => {
+      const found = dbUnitTrend.find(u => u.unit === unit);
+      return { unit, count: found ? found.count : 0 };
+    });
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        summary: stats,
+        summary: statsRes,
         total: total,
         unitTrend
       }),
