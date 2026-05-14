@@ -5,7 +5,8 @@ import {
   CheckCircle2, 
   Clock, 
   MoreHorizontal,
-  ArrowRight
+  ArrowRight,
+  Play
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -65,7 +66,6 @@ const Dashboard = () => {
       default: return 'bg-slate-100 text-slate-700';
     }
   };
-
 
   return (
     <Layout>
@@ -180,28 +180,28 @@ const Dashboard = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        {user.role === 'admin' && c.status === 'pending' && (
+                        {user?.role === 'admin' && c.status === 'pending' && (
                           <button 
                             onClick={() => updateStatus(c.id, 'verified')}
-                            className="text-xs font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-all"
+                            className="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-all flex items-center gap-1"
                           >
-                            Verifikasi
+                            <CheckCircle2 className="h-3 w-3" /> Verifikasi
                           </button>
                         )}
-                        {user.role === 'technician' && c.status === 'verified' && (
+                        {user?.role === 'technician' && c.status === 'verified' && (
                           <button 
                             onClick={() => updateStatus(c.id, 'in_progress')}
-                            className="text-xs font-bold bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-all"
+                            className="text-[10px] font-bold bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-1"
                           >
-                            Kerjakan
+                            <Play className="h-3 w-3" /> Kerjakan
                           </button>
                         )}
-                        {user.role === 'technician' && c.status === 'in_progress' && (
+                        {(user?.role === 'technician' || user?.role === 'admin') && (c.status === 'verified' || c.status === 'in_progress') && (
                           <button 
                             onClick={() => updateStatus(c.id, 'resolved')}
-                            className="text-xs font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-all"
+                            className="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-all flex items-center gap-1"
                           >
-                            Selesaikan
+                            <CheckCircle2 className="h-3 w-3" /> Selesai
                           </button>
                         )}
                         <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-all">

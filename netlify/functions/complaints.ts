@@ -16,12 +16,30 @@ async function verifyToken(token: string) {
 }
 
 export const handler = async (event: any) => {
+  const { whatsapp: trackWhatsapp } = event.queryStringParameters || {};
   const authHeader = event.headers.authorization;
   const token = authHeader?.split(' ')[1];
   const user = token ? await verifyToken(token) : null;
 
-  // GET: List complaints (Requires Auth)
+  // GET: List or Track complaints
   if (event.httpMethod === 'GET') {
+    // If tracking by WhatsApp (Public)
+    if (trackWhatsapp) {
+      try {
+        const result = await db.select().from(complaints)
+          .where(eq(complaints.whatsapp, trackWhatsapp))
+          .orderBy(desc(complaints.createdAt));
+        return {
+          statusCode: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(result),
+        };
+      } catch (error: any) {
+        return { statusCode: 500, body: error.message };
+      }
+    }
+
+    // Otherwise requires Auth
     if (!user) return { statusCode: 401, body: 'Unauthorized' };
     
     try {

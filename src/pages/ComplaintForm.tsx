@@ -12,7 +12,8 @@ import {
   ClipboardList,
   ShieldCheck,
   Smartphone,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from 'lucide-react';
 
 const units = ['Poli', 'Farmasi', 'Kasir', 'Ranap'];
@@ -26,6 +27,10 @@ const ComplaintForm = () => {
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const [trackWa, setTrackWa] = useState('');
+  const [trackResult, setTrackResult] = useState<any[] | null>(null);
+  const [tracking, setTracking] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +46,31 @@ const ComplaintForm = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTrack = async () => {
+    if (!trackWa) return;
+    setTracking(true);
+    try {
+      const res = await fetch(`/.netlify/functions/complaints?whatsapp=${trackWa}`);
+      const data = await res.json();
+      setTrackResult(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTracking(false);
+    }
+  };
+
+  const getTrackStatus = (status: string) => {
+    switch (status) {
+      case 'pending': return { label: 'Waiting', color: 'text-amber-600 bg-amber-50 border-amber-100' };
+      case 'verified': 
+      case 'in_progress': return { label: 'Processing', color: 'text-blue-600 bg-blue-50 border-blue-100' };
+      case 'resolved': 
+      case 'closed': return { label: 'Completed', color: 'text-emerald-600 bg-emerald-50 border-emerald-100' };
+      default: return { label: status, color: 'text-slate-600 bg-slate-50 border-slate-100' };
     }
   };
 
@@ -75,11 +105,10 @@ const ComplaintForm = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 relative overflow-hidden">
-      {/* Hero Section with Medical Gradient */}
+      {/* Hero Section */}
       <div className="medical-gradient pt-20 pb-32 px-6 relative">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none" />
         
-        {/* Admin Login Button */}
         <div className="absolute top-6 right-6">
           <Link 
             to="/login"
@@ -121,7 +150,7 @@ const ComplaintForm = () => {
 
       {/* Form Section */}
       <div className="max-w-3xl mx-auto px-6 py-16">
-        <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in slide-in-from-bottom-8 duration-700">
+        <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
           <div className="bg-slate-50 border-b border-slate-100 p-8 text-center">
             <h2 className="text-2xl font-bold text-slate-900">Buat Laporan Baru</h2>
             <p className="text-slate-500 text-sm mt-1">Isi data di bawah ini dengan santai ya kak.</p>
@@ -207,7 +236,7 @@ const ComplaintForm = () => {
               className="btn-primary w-full h-16 rounded-[1.25rem] text-lg font-bold shadow-xl shadow-primary-200 flex items-center justify-center gap-3 transition-all hover:scale-[1.01] active:scale-[0.98]"
             >
               {loading ? (
-                <div className="h-6 w-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                <Loader2 className="h-6 w-6 animate-spin" />
               ) : (
                 <>
                   <Send className="h-6 w-6" /> Kirim Laporan Sekarang
@@ -218,31 +247,58 @@ const ComplaintForm = () => {
         </div>
 
         {/* Tracking Section */}
-        <div className="mt-12 bg-white rounded-3xl border border-slate-100 p-8 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-1 text-center md:text-left">
-            <h4 className="font-bold text-slate-900">Cek Status Laporan?</h4>
-            <p className="text-xs text-slate-500">Masukkan Nomor WA kamu untuk melihat progres.</p>
+        <div className="mt-12 bg-white rounded-3xl border border-slate-100 p-8 shadow-lg space-y-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-1 text-center md:text-left">
+              <h4 className="font-bold text-slate-900">Cek Status Laporan?</h4>
+              <p className="text-xs text-slate-500">Masukkan Nomor WA kamu untuk melihat progres.</p>
+            </div>
+            <div className="flex w-full md:w-auto gap-2">
+              <input 
+                type="text" 
+                placeholder="Nomor WA (Contoh: 0812...)" 
+                className="input-field h-12 rounded-xl text-sm"
+                value={trackWa}
+                onChange={(e) => setTrackWa(e.target.value)}
+              />
+              <button 
+                onClick={handleTrack}
+                disabled={tracking}
+                className="px-6 bg-slate-900 text-white rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-slate-800 transition-all disabled:opacity-50"
+              >
+                {tracking ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Cek <ArrowRight className="h-4 w-4" /></>}
+              </button>
+            </div>
           </div>
-          <div className="flex w-full md:w-auto gap-2">
-            <input 
-              type="text" 
-              placeholder="Nomor WA / ID Laporan" 
-              className="input-field h-12 rounded-xl text-sm"
-            />
-            <button className="px-6 bg-slate-900 text-white rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-slate-800 transition-all">
-              Cek <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
+
+          {trackResult && (
+            <div className="space-y-4 animate-in fade-in duration-500">
+              {trackResult.length > 0 ? (
+                trackResult.map((res: any) => {
+                  const statusInfo = getTrackStatus(res.status);
+                  return (
+                    <div key={res.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-slate-900 truncate">{res.content}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{new Date(res.createdAt).toLocaleString('id-ID')}</p>
+                      </div>
+                      <div className={`px-4 py-1.5 rounded-full text-[10px] font-bold border ${statusInfo.color} whitespace-nowrap`}>
+                        {statusInfo.label}
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-4 text-sm text-slate-400 italic">
+                  Laporan tidak ditemukan. Pastikan nomor WA sudah benar ya.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Footer */}
       <footer className="py-12 text-center text-slate-400 text-sm">
-        <div className="flex justify-center gap-6 mb-4">
-          <Link to="#" className="hover:text-primary-600">Privacy Policy</Link>
-          <Link to="#" className="hover:text-primary-600">Terms of Service</Link>
-          <Link to="#" className="hover:text-primary-600">Help Center</Link>
-        </div>
         <p>&copy; 2024 CAREBRIDGES. Dibuat dengan sepenuh hati untuk kenyamanan pasien.</p>
       </footer>
     </div>
