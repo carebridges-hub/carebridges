@@ -48,12 +48,12 @@ const Monitoring = () => {
             <div className="h-64 flex items-end justify-between gap-6 px-4">
               {stats?.unitTrend?.map((u: any) => {
                 const colors: Record<string, string> = {
-                  'Farmasi': 'bg-blue-500 shadow-blue-200',
-                  'Poli': 'bg-teal-500 shadow-teal-200',
-                  'Kasir': 'bg-amber-500 shadow-amber-200',
-                  'Ranap': 'bg-emerald-600 shadow-emerald-200'
+                  'Farmasi': 'bg-blue-600 shadow-blue-200',
+                  'Poli': 'bg-green-500 shadow-green-200',
+                  'Kasir': 'bg-yellow-500 shadow-yellow-200',
+                  'Ranap': 'bg-red-600 shadow-red-200'
                 };
-                const colorClass = colors[u.unit] || 'bg-primary-500 shadow-primary-200';
+                const colorClass = colors[u.unit] || 'bg-slate-400 shadow-slate-200';
                 
                 return (
                   <div key={u.unit} className="flex-1 flex flex-col items-center gap-4 group">
