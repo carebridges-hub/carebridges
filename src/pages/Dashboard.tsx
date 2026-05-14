@@ -4,7 +4,6 @@ import {
   ClipboardList, 
   CheckCircle2, 
   Clock, 
-  AlertCircle,
   MoreHorizontal,
   ArrowRight
 } from 'lucide-react';
@@ -67,12 +66,6 @@ const Dashboard = () => {
     }
   };
 
-  const statCards = [
-    { label: 'Total Keluhan', value: stats?.total || 0, icon: ClipboardList, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Pending', value: stats?.summary?.find((s: any) => s.status === 'pending')?.count || 0, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { label: 'Dalam Proses', value: stats?.summary?.find((s: any) => s.status === 'in_progress' || s.status === 'verified')?.count || 0, icon: AlertCircle, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { label: 'Selesai', value: stats?.summary?.find((s: any) => s.status === 'resolved' || s.status === 'closed')?.count || 0, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  ];
 
   return (
     <Layout>
@@ -85,19 +78,68 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {statCards.map((stat) => (
-            <div key={stat.label} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl ${stat.bg} ${stat.color} transition-all group-hover:scale-110`}>
-                  <stat.icon className="h-6 w-6" />
-                </div>
-                <span className="text-xs font-medium text-slate-400">Minggu Ini</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group border-l-4 border-l-blue-600">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 rounded-xl bg-blue-50 text-blue-600 transition-all group-hover:scale-110">
+                <ClipboardList className="h-6 w-6" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
-              <p className="text-sm text-slate-500 font-medium">{stat.label}</p>
+              <span className="text-xs font-medium text-slate-400">Total Keluhan</span>
             </div>
-          ))}
+            <p className="text-3xl font-bold text-slate-900">{stats?.total || 0}</p>
+            <p className="text-sm text-slate-500 font-medium mt-1">Laporan Masuk</p>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group border-l-4 border-l-amber-600">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 rounded-xl bg-amber-50 text-amber-600 transition-all group-hover:scale-110">
+                <Clock className="h-6 w-6" />
+              </div>
+              <span className="text-xs font-medium text-slate-400">Dalam Proses</span>
+            </div>
+            <p className="text-3xl font-bold text-slate-900">
+              {stats?.summary?.find((s: any) => s.status === 'pending' || s.status === 'verified' || s.status === 'in_progress')?.count || 0}
+            </p>
+            <p className="text-sm text-slate-500 font-medium mt-1">Sedang Ditangani</p>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group border-l-4 border-l-emerald-600">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600 transition-all group-hover:scale-110">
+                <CheckCircle2 className="h-6 w-6" />
+              </div>
+              <span className="text-xs font-medium text-slate-400">Selesai</span>
+            </div>
+            <p className="text-3xl font-bold text-slate-900">
+              {stats?.summary?.find((s: any) => s.status === 'resolved' || s.status === 'closed')?.count || 0}
+            </p>
+            <p className="text-sm text-slate-500 font-medium mt-1">Telah Diselesaikan</p>
+          </div>
+        </div>
+
+        {/* Interactive Trend Chart */}
+        <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="font-bold text-slate-900 text-lg">Grafik Tren Keluhan per Unit</h3>
+            <div className="flex gap-2">
+              <span className="flex items-center gap-1 text-xs text-slate-500"><span className="h-2 w-2 bg-primary-600 rounded-full"></span> Volume</span>
+            </div>
+          </div>
+          <div className="h-48 flex items-end justify-between gap-6 px-4">
+            {stats?.unitTrend?.map((u: any) => (
+              <div key={u.unit} className="flex-1 flex flex-col items-center gap-4 group">
+                <div 
+                  className="w-full bg-primary-600/20 hover:bg-primary-600 rounded-t-lg transition-all duration-500 ease-in-out relative cursor-pointer"
+                  style={{ height: `${Math.max((u.count / (stats.total || 1)) * 100, 10)}%` }}
+                >
+                  <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-xl whitespace-nowrap z-20">
+                    {u.count} Laporan
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-tighter">{u.unit}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Recent Complaints */}

@@ -21,8 +21,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['admin', 'staff', 'technician'] },
-    { label: 'Complaints', icon: ClipboardList, path: '/dashboard', roles: ['admin', 'staff', 'technician'] },
+    { label: 'Verifikasi', icon: ClipboardList, path: '/dashboard', roles: ['admin'] },
     { label: 'Monitoring', icon: BarChart3, path: '/monitoring', roles: ['admin'] },
+    { label: 'Audit Trail', icon: ClipboardList, path: '/dashboard', roles: ['admin', 'staff'] },
   ];
 
   const filteredNav = navItems.filter(item => item.roles.includes(user?.role));

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Send, CheckCircle2, Hospital, MessageSquare, User, Phone } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Send, CheckCircle2, Hospital, MessageSquare, User, Phone, LogIn } from 'lucide-react';
 
 const units = ['Poli', 'Farmasi', 'Kasir', 'Ranap'];
 
@@ -14,6 +15,7 @@ const ComplaintForm = () => {
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
+    // ... logic remains same
     e.preventDefault();
     setLoading(true);
     try {
@@ -31,6 +33,7 @@ const ComplaintForm = () => {
   };
 
   if (success) {
+    // ... success UI
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center space-y-6">
@@ -53,7 +56,18 @@ const ComplaintForm = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
+    <div className="min-h-screen bg-slate-50 py-12 px-4 relative">
+      {/* Admin Login Button */}
+      <div className="absolute top-6 right-6">
+        <Link 
+          to="/login"
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm shadow-sm hover:shadow-md hover:text-primary-600 transition-all"
+        >
+          <LogIn className="h-4 w-4" />
+          Login Admin
+        </Link>
+      </div>
+
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-10">
           <div className="flex justify-center mb-4">
