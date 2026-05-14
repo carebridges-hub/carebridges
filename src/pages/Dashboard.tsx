@@ -128,29 +128,41 @@ const Dashboard = () => {
           <div className="h-48 flex items-end justify-between gap-6 px-4">
             {stats?.unitTrend?.map((u: any) => {
               const colors: Record<string, string> = {
-                'Poli': '#2DD4BF',
-                'Farmasi': '#3B82F6',
-                'Kasir': '#F59E0B',
-                'Ranap': '#10B981'
+                'Poli Umum': '#2DD4BF',
+                'Poli Jiwa': '#3B82F6',
+                'Poli KIA': '#F59E0B',
+                'UGD': '#EF4444',
+                'Poli Persalinan': '#10B981',
+                'Poli KB': '#8B5CF6',
+                'Poli Gizi': '#EC4899',
+                'Poli Gigi & Mulut': '#06B6D4',
+                'Laboratorium': '#F97316',
+                'Poli Lansia': '#14B8A6',
+                'Poli TB & Paru': '#6366F1',
+                'Kunjungan Online': '#D946EF',
+                'Home-Visit': '#84CC16',
+                'Poli HIV & IMS': '#475569'
               };
               const hexColor = colors[u.unit] || '#94A3B8';
               
               return (
-                <div key={u.unit} className="flex-1 flex flex-col items-center gap-4 group">
-                  <div className="flex flex-col items-center gap-2 w-full">
-                    <span className="text-[10px] font-bold text-slate-400">{u.count}</span>
+                <div key={u.unit} className="flex-1 min-w-[60px] flex flex-col items-center gap-4 group">
+                  <div className="flex flex-col items-center gap-2 w-full h-full justify-end">
+                    <span className="text-[10px] font-bold text-slate-500">{u.count}</span>
                     <div 
-                      className="w-full rounded-t-xl transition-all duration-700 ease-in-out relative shadow-lg hover:scale-x-105"
+                      className="w-full rounded-t-lg transition-all duration-700 ease-in-out relative shadow-md hover:scale-x-110"
                       style={{ 
-                        height: `${Math.max((u.count / (stats.total || 1)) * 100, 8)}%`,
+                        height: `${Math.max((u.count / (stats.total || 1)) * 100, 15)}%`,
                         backgroundColor: hexColor,
                         opacity: 1
                       }}
                     >
-                      <div className="absolute inset-0 bg-black/5 rounded-t-xl" />
+                      <div className="absolute inset-0 bg-black/5 rounded-t-lg" />
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{u.unit}</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter text-center h-8 leading-tight">
+                    {u.unit.split(' ').join('\n')}
+                  </span>
                 </div>
               );
             })}

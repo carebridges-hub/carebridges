@@ -15,7 +15,12 @@ async function verifyToken(token: string) {
   }
 }
 
-const UNITS = ['Poli', 'Farmasi', 'Kasir', 'Ranap'];
+const UNITS = [
+  'Poli Umum', 'Poli Jiwa', 'Poli KIA', 'UGD', 'Poli Persalinan', 
+  'Poli KB', 'Poli Gizi', 'Poli Gigi & Mulut', 'Laboratorium', 
+  'Poli Lansia', 'Poli TB & Paru', 'Kunjungan Online', 'Home-Visit', 
+  'Poli HIV & IMS'
+];
 
 export const handler = async (event: any) => {
   const authHeader = event.headers.authorization;

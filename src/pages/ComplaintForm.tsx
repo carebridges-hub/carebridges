@@ -16,7 +16,12 @@ import {
   Loader2
 } from 'lucide-react';
 
-const units = ['Poli', 'Farmasi', 'Kasir', 'Ranap'];
+const units = [
+  'Poli Umum', 'Poli Jiwa', 'Poli KIA', 'UGD', 'Poli Persalinan', 
+  'Poli KB', 'Poli Gizi', 'Poli Gigi & Mulut', 'Laboratorium', 
+  'Poli Lansia', 'Poli TB & Paru', 'Kunjungan Online', 'Home-Visit', 
+  'Poli HIV & IMS'
+];
 
 const ComplaintForm = () => {
   const [formData, setFormData] = useState({
@@ -195,13 +200,13 @@ const ComplaintForm = () => {
               <label className="text-sm font-bold text-slate-700 flex items-center gap-2 px-1">
                 <Hospital className="h-4 w-4 text-primary-500" /> Unit Mana yang Bermasalah?
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {units.map((u) => (
                   <button
                     key={u}
                     type="button"
                     onClick={() => setFormData({ ...formData, unit: u })}
-                    className={`h-16 rounded-2xl border-2 transition-all flex items-center justify-center gap-2 font-bold text-sm ${
+                    className={`h-20 px-2 rounded-2xl border-2 transition-all flex items-center justify-center text-center leading-tight font-bold text-[11px] ${
                       formData.unit === u
                         ? 'border-primary-600 bg-primary-50 text-primary-700 shadow-md scale-[1.02]'
                         : 'border-slate-50 bg-slate-50/50 text-slate-500 hover:border-slate-200'
