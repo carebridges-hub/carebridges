@@ -64,7 +64,7 @@ const Monitoring = () => {
                 Tren Keluhan per Unit
               </h3>
             </div>
-            <div className="h-64 flex items-end justify-between gap-6 px-4 overflow-x-auto pb-6">
+            <div className="h-64 flex items-end justify-between gap-6 px-4 overflow-x-auto pb-8">
               {stats?.unitTrend?.map((u: any) => {
                 const hexColor = unitColors[u.unit] || '#94A3B8';
                 return (
@@ -72,14 +72,15 @@ const Monitoring = () => {
                     <div className="flex flex-col items-center gap-2 w-full h-full justify-end">
                       <span className="text-xs font-bold text-slate-500">{u.count}</span>
                       <div 
-                        className="w-full rounded-t-2xl transition-all duration-1000 ease-out relative shadow-xl group-hover:scale-x-110"
+                        className="w-full rounded-t-2xl transition-all duration-1000 ease-out relative shadow-xl hover:brightness-110"
                         style={{ 
                           height: `${Math.max((u.count / (stats.total || 1)) * 100, 10)}%`,
                           backgroundColor: hexColor,
-                          opacity: 1
+                          opacity: 1,
+                          border: `1px solid ${hexColor}`
                         }}
                       >
-                        <div className="absolute inset-0 bg-black/5 rounded-t-2xl" />
+                        <div className="absolute inset-0 bg-black/10 rounded-t-2xl" />
                       </div>
                     </div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center leading-tight h-10">

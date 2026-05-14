@@ -57,13 +57,17 @@ const Dashboard = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus keluhan ini?')) return;
+    if (!window.confirm('Apakah Anda yakin ingin menghapus keluhan ini? Data akan hilang permanen dari Neon Database.')) return;
     try {
       const res = await fetch(`/.netlify/functions/complaints?id=${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) fetchData();
+      if (res.ok) {
+        await fetchData(); // Refresh table AND stats
+      } else {
+        alert('Gagal menghapus data.');
+      }
     } catch (err) {
       console.error(err);
     }
@@ -102,7 +106,7 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="space-y-8 animate-in fade-in duration-700">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Selamat Datang, {user?.name}</h1>
@@ -112,9 +116,9 @@ const Dashboard = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group border-l-4 border-l-blue-600">
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm border-l-4 border-l-blue-600">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-xl bg-blue-50 text-blue-600 transition-all group-hover:scale-110">
+              <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
                 <ClipboardList className="h-6 w-6" />
               </div>
               <span className="text-xs font-medium text-slate-400">Total Keluhan</span>
@@ -123,9 +127,9 @@ const Dashboard = () => {
             <p className="text-sm text-slate-500 font-medium mt-1">Laporan Masuk</p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group border-l-4 border-l-amber-600">
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm border-l-4 border-l-amber-600">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-xl bg-amber-50 text-amber-600 transition-all group-hover:scale-110">
+              <div className="p-3 rounded-xl bg-amber-50 text-amber-600">
                 <Clock className="h-6 w-6" />
               </div>
               <span className="text-xs font-medium text-slate-400">Dalam Proses</span>
@@ -136,9 +140,9 @@ const Dashboard = () => {
             <p className="text-sm text-slate-500 font-medium mt-1">Sedang Ditangani</p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group border-l-4 border-l-emerald-600">
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm border-l-4 border-l-emerald-600">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600 transition-all group-hover:scale-110">
+              <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600">
                 <CheckCircle2 className="h-6 w-6" />
               </div>
               <span className="text-xs font-medium text-slate-400">Selesai</span>
@@ -154,26 +158,24 @@ const Dashboard = () => {
         <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <h3 className="font-bold text-slate-900 text-lg">Grafik Tren Keluhan per Unit</h3>
-            <div className="flex gap-2 text-xs font-bold text-slate-400">
-              <span className="flex items-center gap-1"><span className="h-2 w-2 bg-emerald-500 rounded-full"></span> Real-time Data</span>
-            </div>
           </div>
-          <div className="h-64 flex items-end justify-between gap-4 overflow-x-auto pb-4">
+          <div className="h-64 flex items-end justify-between gap-6 px-4 overflow-x-auto pb-4">
             {stats?.unitTrend?.map((u: any) => {
               const hexColor = unitColors[u.unit] || '#94A3B8';
               return (
-                <div key={u.unit} className="flex-1 min-w-[60px] flex flex-col items-center gap-4 group">
+                <div key={u.unit} className="flex-1 min-w-[70px] flex flex-col items-center gap-4 group">
                   <div className="flex flex-col items-center gap-2 w-full h-full justify-end">
                     <span className="text-[10px] font-bold text-slate-500">{u.count}</span>
                     <div 
-                      className="w-full rounded-t-lg transition-all duration-700 ease-in-out relative shadow-md hover:scale-x-110"
+                      className="w-full rounded-t-lg transition-all duration-700 relative shadow-lg hover:brightness-110"
                       style={{ 
-                        height: `${Math.max((u.count / (stats.total || 1)) * 100, 10)}%`,
+                        height: `${Math.max((u.count / (stats.total || 1)) * 100, 15)}%`,
                         backgroundColor: hexColor,
-                        opacity: 1
+                        opacity: 1,
+                        border: `1px solid ${hexColor}`
                       }}
                     >
-                      <div className="absolute inset-0 bg-black/5 rounded-t-lg" />
+                      <div className="absolute inset-0 bg-black/10 rounded-t-lg" />
                     </div>
                   </div>
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter text-center h-10 leading-tight">
@@ -185,14 +187,14 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Recent Complaints */}
+        {/* Recent Complaints Table */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <h3 className="font-bold text-slate-900">Keluhan Terbaru</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-slate-50/50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+              <thead className="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider">
                 <tr>
                   <th className="px-6 py-4">Pasien / Unit</th>
                   <th className="px-6 py-4">Deskripsikan Keluhan</th>
@@ -201,7 +203,7 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {complaints.map((c) => (
+                {complaints.length > 0 ? complaints.map((c) => (
                   <tr key={c.id} className="hover:bg-slate-50/50 transition-all">
                     <td className="px-6 py-4">
                       <p className="font-bold text-slate-900">{c.patientName || 'Anonim'}</p>
@@ -223,7 +225,7 @@ const Dashboard = () => {
                         {user?.role === 'admin' && c.status === 'pending' && (
                           <button 
                             onClick={() => updateStatus(c.id, 'verified')}
-                            className="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-all flex items-center gap-1"
+                            className="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 flex items-center gap-1"
                           >
                             <CheckCircle2 className="h-3 w-3" /> Verifikasi
                           </button>
@@ -231,7 +233,7 @@ const Dashboard = () => {
                         {user?.role === 'technician' && c.status === 'verified' && (
                           <button 
                             onClick={() => updateStatus(c.id, 'in_progress')}
-                            className="text-[10px] font-bold bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-1"
+                            className="text-[10px] font-bold bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 flex items-center gap-1"
                           >
                             <Play className="h-3 w-3" /> Kerjakan
                           </button>
@@ -239,11 +241,13 @@ const Dashboard = () => {
                         {(user?.role === 'technician' || user?.role === 'admin') && (c.status === 'verified' || c.status === 'in_progress') && (
                           <button 
                             onClick={() => updateStatus(c.id, 'resolved')}
-                            className="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-all flex items-center gap-1"
+                            className="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 flex items-center gap-1"
                           >
                             <CheckCircle2 className="h-3 w-3" /> Selesai
                           </button>
                         )}
+                        
+                        {/* FITUR HAPUS KHUSUS ADMIN */}
                         {user?.role === 'admin' && (
                           <button 
                             onClick={() => handleDelete(c.id)}
@@ -253,13 +257,20 @@ const Dashboard = () => {
                             <Trash2 className="h-4 w-4" />
                           </button>
                         )}
-                        <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-all">
+                        
+                        <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg">
                           <MoreHorizontal className="h-5 w-5" />
                         </button>
                       </div>
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center text-slate-400 italic text-sm">
+                      Belum ada data keluhan.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
