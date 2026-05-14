@@ -19,7 +19,7 @@ const UNITS = [
   'Poli Umum', 'Poli Jiwa', 'Poli KIA', 'UGD', 'Poli Persalinan', 
   'Poli KB', 'Poli Gizi', 'Poli Gigi & Mulut', 'Laboratorium', 
   'Poli Lansia', 'Poli TB & Paru', 'Kunjungan Online', 'Home-Visit', 
-  'Poli HIV & IMS'
+  'Poli HIV & IMS', 'Farmasi', 'Kasir', 'Ranap'
 ];
 
 export const handler = async (event: any) => {

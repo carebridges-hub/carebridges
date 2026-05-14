@@ -5,8 +5,8 @@ import {
   CheckCircle2, 
   Clock, 
   MoreHorizontal,
-  ArrowRight,
-  Play
+  Play,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -56,6 +56,19 @@ const Dashboard = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus keluhan ini?')) return;
+    try {
+      const res = await fetch(`/.netlify/functions/complaints?id=${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) fetchData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-amber-100 text-amber-700 border-amber-200';
@@ -65,6 +78,26 @@ const Dashboard = () => {
       case 'closed': return 'bg-slate-100 text-slate-700 border-slate-200';
       default: return 'bg-slate-100 text-slate-700';
     }
+  };
+
+  const unitColors: Record<string, string> = {
+    'Poli Umum': '#2DD4BF',
+    'Poli Jiwa': '#3B82F6',
+    'Poli KIA': '#F59E0B',
+    'UGD': '#EF4444',
+    'Poli Persalinan': '#10B981',
+    'Poli KB': '#8B5CF6',
+    'Poli Gizi': '#EC4899',
+    'Poli Gigi & Mulut': '#06B6D4',
+    'Laboratorium': '#F97316',
+    'Poli Lansia': '#14B8A6',
+    'Poli TB & Paru': '#6366F1',
+    'Kunjungan Online': '#D946EF',
+    'Home-Visit': '#84CC16',
+    'Poli HIV & IMS': '#475569',
+    'Farmasi': '#0EA5E9',
+    'Kasir': '#EAB308',
+    'Ranap': '#22C55E'
   };
 
   return (
@@ -121,30 +154,13 @@ const Dashboard = () => {
         <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <h3 className="font-bold text-slate-900 text-lg">Grafik Tren Keluhan per Unit</h3>
-            <div className="flex gap-2">
-              <span className="flex items-center gap-1 text-xs text-slate-500"><span className="h-2 w-2 bg-primary-600 rounded-full"></span> Volume</span>
+            <div className="flex gap-2 text-xs font-bold text-slate-400">
+              <span className="flex items-center gap-1"><span className="h-2 w-2 bg-emerald-500 rounded-full"></span> Real-time Data</span>
             </div>
           </div>
-          <div className="h-48 flex items-end justify-between gap-6 px-4">
+          <div className="h-64 flex items-end justify-between gap-4 overflow-x-auto pb-4">
             {stats?.unitTrend?.map((u: any) => {
-              const colors: Record<string, string> = {
-                'Poli Umum': '#2DD4BF',
-                'Poli Jiwa': '#3B82F6',
-                'Poli KIA': '#F59E0B',
-                'UGD': '#EF4444',
-                'Poli Persalinan': '#10B981',
-                'Poli KB': '#8B5CF6',
-                'Poli Gizi': '#EC4899',
-                'Poli Gigi & Mulut': '#06B6D4',
-                'Laboratorium': '#F97316',
-                'Poli Lansia': '#14B8A6',
-                'Poli TB & Paru': '#6366F1',
-                'Kunjungan Online': '#D946EF',
-                'Home-Visit': '#84CC16',
-                'Poli HIV & IMS': '#475569'
-              };
-              const hexColor = colors[u.unit] || '#94A3B8';
-              
+              const hexColor = unitColors[u.unit] || '#94A3B8';
               return (
                 <div key={u.unit} className="flex-1 min-w-[60px] flex flex-col items-center gap-4 group">
                   <div className="flex flex-col items-center gap-2 w-full h-full justify-end">
@@ -152,7 +168,7 @@ const Dashboard = () => {
                     <div 
                       className="w-full rounded-t-lg transition-all duration-700 ease-in-out relative shadow-md hover:scale-x-110"
                       style={{ 
-                        height: `${Math.max((u.count / (stats.total || 1)) * 100, 15)}%`,
+                        height: `${Math.max((u.count / (stats.total || 1)) * 100, 10)}%`,
                         backgroundColor: hexColor,
                         opacity: 1
                       }}
@@ -160,7 +176,7 @@ const Dashboard = () => {
                       <div className="absolute inset-0 bg-black/5 rounded-t-lg" />
                     </div>
                   </div>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter text-center h-8 leading-tight">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter text-center h-10 leading-tight">
                     {u.unit.split(' ').join('\n')}
                   </span>
                 </div>
@@ -173,9 +189,6 @@ const Dashboard = () => {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <h3 className="font-bold text-slate-900">Keluhan Terbaru</h3>
-            <button className="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1">
-              Lihat Semua <ArrowRight className="h-4 w-4" />
-            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -212,7 +225,7 @@ const Dashboard = () => {
                             onClick={() => updateStatus(c.id, 'verified')}
                             className="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-all flex items-center gap-1"
                           >
-                            <CheckCircle2 className="h-3 w-3" /> Verifikasi & Tugaskan Petugas Sarpras
+                            <CheckCircle2 className="h-3 w-3" /> Verifikasi
                           </button>
                         )}
                         {user?.role === 'technician' && c.status === 'verified' && (
@@ -229,6 +242,15 @@ const Dashboard = () => {
                             className="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-all flex items-center gap-1"
                           >
                             <CheckCircle2 className="h-3 w-3" /> Selesai
+                          </button>
+                        )}
+                        {user?.role === 'admin' && (
+                          <button 
+                            onClick={() => handleDelete(c.id)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            title="Hapus Keluhan"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         )}
                         <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-all">

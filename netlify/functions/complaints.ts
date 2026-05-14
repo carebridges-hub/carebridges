@@ -120,5 +120,19 @@ export const handler = async (event: any) => {
     }
   }
 
+  // DELETE: Remove complaint (Admin only)
+  if (event.httpMethod === 'DELETE') {
+    if (!user || user.role !== 'admin') return { statusCode: 401, body: 'Unauthorized' };
+    const { id } = event.queryStringParameters || {};
+    if (!id) return { statusCode: 400, body: 'Missing ID' };
+
+    try {
+      await db.delete(complaints).where(eq(complaints.id, id));
+      return { statusCode: 200, body: 'Deleted' };
+    } catch (error: any) {
+      return { statusCode: 500, body: error.message };
+    }
+  }
+
   return { statusCode: 405, body: 'Method Not Allowed' };
 };
