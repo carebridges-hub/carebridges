@@ -185,7 +185,7 @@ const Dashboard = () => {
                             onClick={() => updateStatus(c.id, 'verified')}
                             className="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-all flex items-center gap-1"
                           >
-                            <CheckCircle2 className="h-3 w-3" /> Verifikasi
+                            <CheckCircle2 className="h-3 w-3" /> Verifikasi & Tugaskan Petugas Sarpras
                           </button>
                         )}
                         {user?.role === 'technician' && c.status === 'verified' && (

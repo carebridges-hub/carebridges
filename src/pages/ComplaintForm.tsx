@@ -128,7 +128,7 @@ const ComplaintForm = () => {
             <span className="text-primary-100">Sarana & Prasarana</span>
           </h1>
           <p className="text-primary-50 text-lg md:text-xl max-w-2xl mx-auto font-medium opacity-90">
-            Kenyamanan Anda adalah prioritas kami. Laporkan kerusakan fasilitas rumah sakit dalam sekejap.
+            Kenyamanan Anda adalah prioritas kami. Laporkan keluhan fasilitas rumah sakit dalam sekejap.
           </p>
         </div>
       </div>
@@ -222,7 +222,7 @@ const ComplaintForm = () => {
                   required
                   rows={4}
                   className="input-field rounded-2xl bg-slate-50/50 border-slate-100 focus:bg-white transition-all pt-12 pl-12"
-                  placeholder="Ceritakan detail kerusakannya di sini..."
+                  placeholder="Ceritakan detail keluhannya di sini..."
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                 />

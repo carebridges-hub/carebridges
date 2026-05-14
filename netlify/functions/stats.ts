@@ -25,15 +25,16 @@ export const handler = async (event: any) => {
   try {
     const stats = await db.select({
       status: complaints.status,
-      count: sql<number>`count(*)`,
+      count: sql<number>`cast(count(*) as integer)`,
     }).from(complaints).groupBy(complaints.status);
 
-    const total = await db.select({ count: sql<number>`count(*)` }).from(complaints);
+    const totalRes = await db.select({ count: sql<number>`cast(count(*) as integer)` }).from(complaints);
+    const total = totalRes[0]?.count || 0;
     
     // Trend by unit
     const unitTrend = await db.select({
       unit: complaints.unit,
-      count: sql<number>`count(*)`,
+      count: sql<number>`cast(count(*) as integer)`,
     }).from(complaints).groupBy(complaints.unit);
 
     return {
@@ -41,7 +42,7 @@ export const handler = async (event: any) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         summary: stats,
-        total: total[0].count,
+        total: total,
         unitTrend
       }),
     };
