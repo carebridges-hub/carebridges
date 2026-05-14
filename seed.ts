@@ -1,5 +1,6 @@
 import { db } from './src/db';
 import { users, complaints } from './src/db/schema';
+import { sql } from 'drizzle-orm';
 import pkg from 'pg';
 const { Client } = pkg;
 
@@ -30,7 +31,14 @@ async function seed() {
         name: 'Teknisi Utama',
         role: 'technician',
       },
-    ]).onConflictDoNothing();
+    ]).onConflictDoUpdate({
+      target: users.email,
+      set: {
+        password: sql`EXCLUDED.password`,
+        name: sql`EXCLUDED.name`,
+        role: sql`EXCLUDED.role`
+      }
+    });
 
     // Create some initial complaints
     await db.insert(complaints).values([

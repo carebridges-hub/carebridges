@@ -3,7 +3,8 @@ import { users } from '../../src/db/schema';
 import { eq } from 'drizzle-orm';
 import * as jose from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'carebridges_super_secret_key_2024');
+if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET is not set');
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export const handler = async (event: any) => {
   if (event.httpMethod !== 'POST') {
