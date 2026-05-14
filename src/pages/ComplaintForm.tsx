@@ -215,7 +215,7 @@ const ComplaintForm = () => {
 
             <div className="space-y-3">
               <label className="text-sm font-bold text-slate-700 flex items-center gap-2 px-1">
-                <MessageSquare className="h-4 w-4 text-primary-500" /> Jelaskan Keluhannya
+                <MessageSquare className="h-4 w-4 text-primary-500" /> Deskripsikan Keluhan
               </label>
               <div className="relative group">
                 <textarea

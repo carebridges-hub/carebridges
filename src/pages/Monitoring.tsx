@@ -48,22 +48,27 @@ const Monitoring = () => {
             <div className="h-64 flex items-end justify-between gap-6 px-4">
               {stats?.unitTrend?.map((u: any) => {
                 const colors: Record<string, string> = {
-                  'Farmasi': 'bg-blue-600 shadow-blue-200',
-                  'Poli': 'bg-green-500 shadow-green-200',
-                  'Kasir': 'bg-yellow-500 shadow-yellow-200',
-                  'Ranap': 'bg-red-600 shadow-red-200'
+                  'Poli': '#2DD4BF',
+                  'Farmasi': '#3B82F6',
+                  'Kasir': '#F59E0B',
+                  'Ranap': '#10B981'
                 };
-                const colorClass = colors[u.unit] || 'bg-slate-400 shadow-slate-200';
+                const hexColor = colors[u.unit] || '#94A3B8';
                 
                 return (
                   <div key={u.unit} className="flex-1 flex flex-col items-center gap-4 group">
                     <div className="flex flex-col items-center gap-2 w-full h-full justify-end">
-                      <span className="text-xs font-bold text-slate-400">{u.count}</span>
+                      <span className="text-xs font-bold text-slate-500">{u.count}</span>
                       <div 
-                        className={`w-full ${colorClass} rounded-t-2xl transition-all duration-1000 ease-out relative shadow-xl group-hover:scale-x-110`}
-                        style={{ height: `${Math.max((u.count / (stats.total || 1)) * 100, 10)}%` }}
+                        className="w-full rounded-t-2xl transition-all duration-1000 ease-out relative shadow-xl group-hover:scale-x-110"
+                        style={{ 
+                          height: `${Math.max((u.count / (stats.total || 1)) * 100, 10)}%`,
+                          backgroundColor: hexColor,
+                          opacity: 1
+                        }}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-t-2xl" />
+                        {/* Overlay to ensure solid feel */}
+                        <div className="absolute inset-0 bg-black/5 rounded-t-2xl" />
                       </div>
                     </div>
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{u.unit}</span>
